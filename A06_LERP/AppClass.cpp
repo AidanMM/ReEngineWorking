@@ -14,6 +14,29 @@ void AppClass::InitVariables(void)
 	m_pMeshMngr->LoadModel("Sorted\\WallEye.bto", "WallEye");
 
 	fDuration = 1.0f;
+
+	lerpVectors = new vector3[numVectors];
+	lerpVectors[0] = vector3(-4, -2, 5);
+	lerpVectors[1] = vector3(1, -2, 5);
+	lerpVectors[2] = vector3(-3, -1, 3);
+	lerpVectors[3] = vector3(2, -1, 3);
+	lerpVectors[4] = vector3(-2, 0, 0);
+	lerpVectors[5] = vector3(3, 0, 0);
+	lerpVectors[6] = vector3(-1, 1, -3);
+	lerpVectors[7] = vector3(4, 1, -3);
+	lerpVectors[8] = vector3(0, 2, -5);
+	lerpVectors[9] = vector3(5, 2, -5);
+	lerpVectors[10] = vector3(1, 3, -5);
+
+	wayPoints = new PrimitiveClass[numVectors];
+
+	for (int i = 0; i < numVectors; i++)
+	{
+		wayPoints[i] = PrimitiveClass();
+		wayPoints[i].GenerateSphere(.1f, 3, RERED);
+	}
+
+	m_m4Model = IDENTITY_M4;
 }
 
 void AppClass::Update(void)
@@ -36,7 +59,17 @@ void AppClass::Update(void)
 #pragma endregion
 
 #pragma region Your Code goes here
-	m_pMeshMngr->SetModelMatrix(IDENTITY_M4, "WallEye");
+	animationTime += fTimeSpan;
+	m_m4Model = glm::translate(IDENTITY_M4,
+						glm::lerp(lerpVectors[currentWayPoint % numVectors],
+							lerpVectors[(currentWayPoint + 1) % numVectors], float(animationTime / fDuration))
+						);
+	if (animationTime > fDuration) {
+		animationTime = 0;
+		currentWayPoint += 1;
+		currentWayPoint %= numVectors;
+	}
+	m_pMeshMngr->SetModelMatrix(m_m4Model, "WallEye");
 #pragma endregion
 
 #pragma region Does not need changes but feel free to change anything here
@@ -75,6 +108,13 @@ void AppClass::Display(void)
 		break;
 	}
 	
+	for (int i = 0; i < numVectors; i++)
+	{
+		wayPoints[i].Render(m_pCameraMngr->GetProjectionMatrix(),
+			m_pCameraMngr->GetViewMatrix(),
+			glm::translate(IDENTITY_M4, lerpVectors[i]));
+	}
+
 	m_pMeshMngr->Render(); //renders the render list
 
 	m_pGLSystem->GLSwapBuffers(); //Swaps the OpenGL buffers
@@ -82,5 +122,7 @@ void AppClass::Display(void)
 
 void AppClass::Release(void)
 {
+	delete[] lerpVectors;
+	delete[] wayPoints;
 	super::Release(); //release the memory of the inherited fields
 }

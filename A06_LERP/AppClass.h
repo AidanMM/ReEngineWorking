@@ -12,6 +12,12 @@ using namespace ReEng; //Using ReEng namespace to use all the classes in the dll
 
 class AppClass : public ReEngAppClass
 {
+	float animationTime = 0.0f;
+	matrix4 m_m4Model;
+	int currentWayPoint = 0;
+	vector3* lerpVectors = nullptr;
+	int numVectors = 11;
+	PrimitiveClass* wayPoints = nullptr;
 	float fDuration = 1.0f; //Time Duration of the stops
 public:
 	typedef ReEngAppClass super;
